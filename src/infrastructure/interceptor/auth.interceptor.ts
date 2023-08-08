@@ -14,7 +14,7 @@ export class AuthInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
     const request = context.switchToHttp().getRequest()
     const extractJwt = request.headers['authorization']
-    console.log('AQUI')
+
     if (extractJwt) {
       const [, token] = extractJwt.split('Bearer ')
 
