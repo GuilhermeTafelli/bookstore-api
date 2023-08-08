@@ -1,0 +1,34 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "./generated/mongo"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String    @db.String()
+  email     String    @db.String()
+  password  String    @db.String()
+  createdAt DateTime  @map("created_at") @db.Timestamp()
+  updatedAt DateTime? @map("updated_at") @db.Timestamp()
+
+  @@map("user")
+}
+
+model Book {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  title             String    @db.String()
+  description       String    @db.String()
+  author            String    @db.String()
+  publishingCompany String    @db.String()
+  isRented          Boolean?  @default(false) @db.Bool()
+  createdAt         DateTime  @map("created_at") @db.Timestamp()
+  updatedAt         DateTime? @map("updated_at") @db.Timestamp()
+
+  @@map("book")
+}

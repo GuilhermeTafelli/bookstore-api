@@ -1,0 +1,58 @@
+version: '3.1'
+services:
+  # mongodb replicaset primary
+  mongod1:
+    container_name: mongod1
+    image: mongo:4.4
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    ports:
+      - ${MONGODB_PORT}:27017
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/mongodb/data1:/data/db
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/.docker/mongo/replica.key:/data/replica.key
+    depends_on:
+      - mongod2
+      - mongod3
+    restart: always
+    command: "mongod --bind_ip_all --replSet dbrs --keyFile /data/replica.key"
+
+  # mongodb replicaset secondary
+  mongod2:
+    container_name: mongod2
+    image: mongo:4.4
+    expose:
+      - 27017
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/mongodb/data2:/data/db
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/.docker/mongo/replica.key:/data/replica.key
+    restart: always
+    command: "mongod --bind_ip_all --replSet dbrs --keyFile /data/replica.key"
+
+  # mongodb replicaset arbiter
+  mongod3:
+    container_name: mongod3
+    image: mongo:4.4
+    expose:
+      - 27017
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/mongodb/data3:/data/db
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/.docker/mongo/replica.key:/data/replica.key
+    restart: always
+    command: "mongod --bind_ip_all --replSet dbrs --keyFile /data/replica.key"
+
+  mongo-setup:
+    image: mongo:4.4
+    container_name: mongo-setup
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    depends_on:
+      - mongod1
+      - mongod2
+      - mongod3
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/scripts/mongodb_rs_init.sh:/scripts/mongodb_rs_init.sh
+    restart: on-failure
+    entrypoint: ["/bin/bash", "/scripts/mongodb_rs_init.sh"]
